@@ -16,12 +16,69 @@ spec:
       labels:
         app: nginx-per-node
     spec:
+      volumes:
+        - name: webroot
+          emptyDir: {}
+
+      initContainers:
+        - name: write-index
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              cat > /usr/share/nginx/html/index.html <<'EOF'
+              <!doctype html>
+              <html lang="en">
+              <head>
+                <meta charset="utf-8"/>
+                <meta name="viewport" content="width=device-width,initial-scale=1"/>
+                <title>nginx per node</title>
+                <style>
+                  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;margin:2rem;line-height:1.4}
+                  code{background:#f4f4f4;padding:.15rem .35rem;border-radius:.25rem}
+                  .card{border:1px solid #eee;border-radius:.5rem;padding:1rem;max-width:640px}
+                </style>
+              </head>
+              <body>
+                <div class="card">
+                  <h1>It works.</h1>
+                  <ul>
+                    <li><strong>Node:</strong> ${NODE_NAME} &nbsp;(<code>${HOST_IP}</code>)</li>
+                    <li><strong>Pod / Container:</strong> ${POD_NAME} / nginx</li>
+                    <li><strong>Pod IP:</strong> <code>${POD_IP}</code></li>
+                    <li><strong>Namespace:</strong> ${NAMESPACE}</li>
+                  </ul>
+                  <p>Served by NGINX on each node via a DaemonSet.</p>
+                </div>
+              </body>
+              </html>
+              EOF
+              printenv | sort > /usr/share/nginx/html/env.txt
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: NODE_NAME
+              valueFrom: { fieldRef: { fieldPath: spec.nodeName } }
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+            - name: HOST_IP
+              valueFrom: { fieldRef: { fieldPath: status.hostIP } }
+            - name: NAMESPACE
+              valueFrom: { fieldRef: { fieldPath: metadata.namespace } }
+          volumeMounts:
+            - name: webroot
+              mountPath: /usr/share/nginx/html
+
       containers:
         - name: nginx
           image: nginx:latest
           ports:
             - name: http
               containerPort: 80
+          volumeMounts:
+            - name: webroot
+              mountPath: /usr/share/nginx/html
           readinessProbe:
             httpGet:
               path: /
