@@ -16,12 +16,6 @@ spec:
       labels:
         app: nginx-per-node
     spec:
-      # If you also want pods on MKE manager nodes (which are tainted),
-      # uncomment the toleration below:
-      # tolerations:
-      #   - key: "com.docker.ucp.manager"
-      #     operator: "Exists"
-      #     effect: "NoSchedule"
       containers:
         - name: nginx
           image: nginx:latest
