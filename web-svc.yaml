@@ -11,5 +11,4 @@ spec:
     - name: http
       port: 80
       targetPort: http
-      # MKE often uses a NodePort range of 32768–35535; pick one in-range:
       nodePort: 33380
