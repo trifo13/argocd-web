@@ -27,7 +27,7 @@ spec:
             - sh
             - -c
             - |
-              cat > /usr/share/nginx/html/index.html <<'EOF'
+              cat > /usr/share/nginx/html/index.html <<EOF
               <!doctype html>
               <html lang="en">
               <head>
